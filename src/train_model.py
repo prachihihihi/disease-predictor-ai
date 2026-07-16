@@ -1,8 +1,9 @@
 import pandas as pd
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
+import matplotlib.pyplot as plt
 
 def load_data():
     train_df = pd.read_csv("data/Training.csv")
@@ -66,3 +67,34 @@ if __name__ == "__main__":
     print(f"{'='*50}")
     print(f"Naive Bayes Accuracy:   {nb_accuracy * 100:.2f}%")
     print(f"Decision Tree Accuracy: {dt_accuracy * 100:.2f}%")
+
+    nb_predictions = nb_model.predict(X_test)
+
+    # Confusion matrix (Naive Bayes)
+    cm = confusion_matrix(y_test, nb_predictions)
+    plt.figure(figsize=(10, 8))
+    plt.imshow(cm, cmap="Blues")
+    plt.title("Confusion Matrix - Naive Bayes")
+    plt.xlabel("Predicted Disease (encoded)")
+    plt.ylabel("Actual Disease (encoded)")
+    plt.colorbar()
+    plt.tight_layout()
+    plt.savefig("docs/confusion_matrix_nb.png", dpi=150)
+    plt.close()
+
+    # Accuracy comparison bar chart
+    plt.figure(figsize=(6, 5))
+    models = ["Naive Bayes\n(Main Model)", "Decision Tree\n(Baseline)"]
+    accuracies = [nb_accuracy * 100, dt_accuracy * 100]
+    colors = ["#2196F3", "#FF9800"]
+    plt.bar(models, accuracies, color=colors)
+    plt.ylabel("Accuracy (%)")
+    plt.title("Model Comparison: Naive Bayes vs Decision Tree")
+    plt.ylim(0, 105)
+    for i, v in enumerate(accuracies):
+        plt.text(i, v + 1, f"{v:.2f}%", ha="center", fontweight="bold")
+    plt.tight_layout()
+    plt.savefig("docs/model_comparison.png", dpi=150)
+    plt.close()
+
+    print("\nVisuals saved to docs/ folder: confusion_matrix_nb.png, model_comparison.png")
