@@ -1,3 +1,4 @@
+#Prachi Silwal
 import pandas as pd
 from sklearn.naive_bayes import GaussianNB, BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
@@ -76,16 +77,27 @@ if __name__ == "__main__":
     print(f"Bernoulli Naive Bayes Accuracy: {bnb_accuracy * 100:.2f}%")
     print(f"Decision Tree Accuracy:         {dt_accuracy * 100:.2f}%")
 
+    # --- Generate evaluation visuals for Part D ---
     bnb_predictions = bnb_model.predict(X_test)
 
-    # Confusion matrix (Bernoulli Naive Bayes - final model)
+    # Confusion matrix (Bernoulli Naive Bayes - final model) with annotated counts
     cm = confusion_matrix(y_test, bnb_predictions)
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(12, 10))
     plt.imshow(cm, cmap="Blues")
     plt.title("Confusion Matrix - Bernoulli Naive Bayes")
     plt.xlabel("Predicted Disease (encoded)")
     plt.ylabel("Actual Disease (encoded)")
     plt.colorbar()
+
+    thresh = cm.max() / 2.0
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            if cm[i, j] > 0:
+                plt.text(j, i, str(cm[i, j]),
+                          ha="center", va="center",
+                          color="white" if cm[i, j] > thresh else "black",
+                          fontsize=8)
+
     plt.tight_layout()
     plt.savefig("docs/confusion_matrix_nb.png", dpi=150)
     plt.close()
