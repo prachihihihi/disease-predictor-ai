@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import BernoulliNB
 from sklearn.preprocessing import LabelEncoder
 
 def load_and_train():
@@ -12,7 +12,7 @@ def load_and_train():
     le = LabelEncoder()
     y_encoded = le.fit_transform(y_train)
 
-    model = GaussianNB()
+    model = BernoulliNB()
     model.fit(X_train, y_encoded)
 
     symptom_list = X_train.columns.tolist()

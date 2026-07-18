@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import GaussianNB, BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
@@ -9,7 +9,6 @@ def load_data():
     train_df = pd.read_csv("data/Training.csv")
     test_df = pd.read_csv("data/Testing.csv")
 
-    # Drop the empty unnamed column if it exists
     train_df = train_df.loc[:, ~train_df.columns.str.contains("^Unnamed")]
     test_df = test_df.loc[:, ~test_df.columns.str.contains("^Unnamed")]
 
@@ -22,7 +21,6 @@ def prepare_features(train_df, test_df):
     X_test = test_df.drop("prognosis", axis=1)
     y_test = test_df["prognosis"]
 
-    # Encode disease names into numbers for the model
     le = LabelEncoder()
     y_train_encoded = le.fit_transform(y_train)
     y_test_encoded = le.transform(y_test)
@@ -31,6 +29,11 @@ def prepare_features(train_df, test_df):
 
 def train_naive_bayes(X_train, y_train):
     model = GaussianNB()
+    model.fit(X_train, y_train)
+    return model
+
+def train_bernoulli_nb(X_train, y_train):
+    model = BernoulliNB()
     model.fit(X_train, y_train)
     return model
 
@@ -54,9 +57,13 @@ if __name__ == "__main__":
     train_df, test_df = load_data()
     X_train, y_train, X_test, y_test, le = prepare_features(train_df, test_df)
 
-    print("Training Naive Bayes model...")
+    print("Training Gaussian Naive Bayes model...")
     nb_model = train_naive_bayes(X_train, y_train)
-    nb_accuracy = evaluate_model(nb_model, X_test, y_test, le, "Naive Bayes (Main Model)")
+    nb_accuracy = evaluate_model(nb_model, X_test, y_test, le, "Gaussian Naive Bayes (Initial Model)")
+
+    print("\nTraining Bernoulli Naive Bayes model (better suited for binary features)...")
+    bnb_model = train_bernoulli_nb(X_train, y_train)
+    bnb_accuracy = evaluate_model(bnb_model, X_test, y_test, le, "Bernoulli Naive Bayes (Refined Model)")
 
     print("\nTraining Decision Tree model (baseline)...")
     dt_model = train_decision_tree(X_train, y_train)
@@ -65,16 +72,17 @@ if __name__ == "__main__":
     print(f"\n{'='*50}")
     print("Summary")
     print(f"{'='*50}")
-    print(f"Naive Bayes Accuracy:   {nb_accuracy * 100:.2f}%")
-    print(f"Decision Tree Accuracy: {dt_accuracy * 100:.2f}%")
+    print(f"Gaussian Naive Bayes Accuracy:  {nb_accuracy * 100:.2f}%")
+    print(f"Bernoulli Naive Bayes Accuracy: {bnb_accuracy * 100:.2f}%")
+    print(f"Decision Tree Accuracy:         {dt_accuracy * 100:.2f}%")
 
-    nb_predictions = nb_model.predict(X_test)
+    bnb_predictions = bnb_model.predict(X_test)
 
-    # Confusion matrix (Naive Bayes)
-    cm = confusion_matrix(y_test, nb_predictions)
+    # Confusion matrix (Bernoulli Naive Bayes - final model)
+    cm = confusion_matrix(y_test, bnb_predictions)
     plt.figure(figsize=(10, 8))
     plt.imshow(cm, cmap="Blues")
-    plt.title("Confusion Matrix - Naive Bayes")
+    plt.title("Confusion Matrix - Bernoulli Naive Bayes")
     plt.xlabel("Predicted Disease (encoded)")
     plt.ylabel("Actual Disease (encoded)")
     plt.colorbar()
@@ -82,14 +90,14 @@ if __name__ == "__main__":
     plt.savefig("docs/confusion_matrix_nb.png", dpi=150)
     plt.close()
 
-    # Accuracy comparison bar chart
-    plt.figure(figsize=(6, 5))
-    models = ["Naive Bayes\n(Main Model)", "Decision Tree\n(Baseline)"]
-    accuracies = [nb_accuracy * 100, dt_accuracy * 100]
-    colors = ["#2196F3", "#FF9800"]
+    # Accuracy comparison bar chart (all three models)
+    plt.figure(figsize=(7, 5))
+    models = ["Gaussian NB\n(Initial)", "Bernoulli NB\n(Refined)", "Decision Tree\n(Baseline)"]
+    accuracies = [nb_accuracy * 100, bnb_accuracy * 100, dt_accuracy * 100]
+    colors = ["#90A4AE", "#2196F3", "#FF9800"]
     plt.bar(models, accuracies, color=colors)
     plt.ylabel("Accuracy (%)")
-    plt.title("Model Comparison: Naive Bayes vs Decision Tree")
+    plt.title("Model Comparison")
     plt.ylim(0, 105)
     for i, v in enumerate(accuracies):
         plt.text(i, v + 1, f"{v:.2f}%", ha="center", fontweight="bold")
