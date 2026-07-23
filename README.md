@@ -45,13 +45,25 @@ and is used by the interactive prediction system.
 ### 5. Generate explainability output: src/explainability.py
 
 
+## Machine Learning Approach
 
-## Dataset
+The project evaluates different supervised learning approaches:
 
-The project uses a symptom-disease dataset containing symptom patterns and corresponding disease labels for supervised learning.
+- Bernoulli Naive Bayes
+- Decision Tree
+- Logistic Regression
 
-To improve robustness against incomplete symptom reporting, symptom noise augmentation is applied during training by randomly adding and removing symptoms.
+The models are compared using evaluation metrics including:
 
+- Accuracy
+- Precision
+- Recall
+- F1-score
+- Top-k prediction accuracy
+- Confusion matrices
+
+The best-performing model is saved as: models/best_model.pkl
+and is used by the interactive prediction system.
 
 
 ## Disclaimer
